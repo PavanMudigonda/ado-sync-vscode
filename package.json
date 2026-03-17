@@ -1,0 +1,171 @@
+{
+  "name": "ado-sync-vscode",
+  "displayName": "ado-sync",
+  "description": "Bidirectional sync between local test specs and Azure DevOps Test Cases",
+  "version": "0.1.0",
+  "publisher": "PavanMudigonda",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PavanMudigonda/ado-sync-vscode"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Testing",
+    "Other"
+  ],
+  "keywords": [
+    "azure devops",
+    "test cases",
+    "bdd",
+    "gherkin",
+    "playwright",
+    "spec sync"
+  ],
+  "icon": "images/icon.png",
+  "activationEvents": [
+    "workspaceContains:ado-sync.json",
+    "workspaceContains:azure-test-sync.json"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "ado-sync.push",
+        "title": "ado-sync: Push",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "ado-sync.pushDryRun",
+        "title": "ado-sync: Push (Dry Run)",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "ado-sync.pull",
+        "title": "ado-sync: Pull",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "ado-sync.pullDryRun",
+        "title": "ado-sync: Pull (Dry Run)",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "ado-sync.status",
+        "title": "ado-sync: Status",
+        "icon": "$(git-compare)"
+      },
+      {
+        "command": "ado-sync.validate",
+        "title": "ado-sync: Validate Config",
+        "icon": "$(verified)"
+      },
+      {
+        "command": "ado-sync.generate",
+        "title": "ado-sync: Generate Spec from Story",
+        "icon": "$(wand)"
+      },
+      {
+        "command": "ado-sync.openInAdo",
+        "title": "ado-sync: Open Test Case in Azure DevOps",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "ado-sync.refreshSidebar",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "when": "resourceExtname == .feature || resourceExtname == .md",
+          "command": "ado-sync.push",
+          "group": "ado-sync@1"
+        },
+        {
+          "when": "resourceExtname == .feature || resourceExtname == .md",
+          "command": "ado-sync.status",
+          "group": "ado-sync@2"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "ado-sync.refreshSidebar",
+          "when": "view == adoSyncTestCases",
+          "group": "navigation"
+        },
+        {
+          "command": "ado-sync.push",
+          "when": "view == adoSyncTestCases",
+          "group": "navigation"
+        }
+      ]
+    },
+    "views": {
+      "test": [
+        {
+          "id": "adoSyncTestCases",
+          "name": "ADO Test Cases",
+          "icon": "$(beaker)",
+          "contextualTitle": "ado-sync"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "ado-sync",
+      "properties": {
+        "ado-sync.configPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to ado-sync.json config file (relative to workspace root). Leave empty to auto-detect."
+        },
+        "ado-sync.showCodeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show CodeLens links above @tc: tagged scenarios"
+        },
+        "ado-sync.autoStatus": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically run status check when a spec file is saved"
+        },
+        "ado-sync.outputLevel": {
+          "type": "string",
+          "enum": ["normal", "verbose", "quiet"],
+          "default": "normal",
+          "description": "Output verbosity level"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --minify",
+    "build:dev": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --sourcemap",
+    "watch": "npm run build:dev -- --watch",
+    "lint": "eslint src --ext ts",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "esbuild": "^0.20.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.3.0",
+    "@vscode/vsce": "^2.24.0"
+  },
+  "peerDependencies": {
+    "ado-sync": ">=0.1.40"
+  },
+  "peerDependenciesMeta": {
+    "ado-sync": {
+      "optional": false
+    }
+  }
+}
