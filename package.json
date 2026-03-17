@@ -26,8 +26,12 @@
   ],
   "icon": "images/icon.png",
   "activationEvents": [
-    "workspaceContains:ado-sync.json",
-    "workspaceContains:azure-test-sync.json"
+    "workspaceContains:**/ado-sync.json",
+    "workspaceContains:**/ado-sync.yml",
+    "workspaceContains:**/ado-sync.yaml",
+    "workspaceContains:**/azure-test-sync.json",
+    "workspaceContains:**/azure-test-sync.yml",
+    "workspaceContains:**/azure-test-sync.yaml"
   ],
   "main": "./dist/extension.js",
   "contributes": {

@@ -13,7 +13,7 @@ import { fetchTestCaseCommand } from './commands/fetchTestCase';
 import { AdoSyncCodeLensProvider } from './providers/codelens';
 import { AdoSyncHoverProvider } from './providers/hover';
 import { AdoSyncTreeProvider } from './sidebar/tree';
-import { resolveConfig, parseConfigFile, buildAdoUrl } from './config';
+import { resolveConfig, parseConfigFile, buildAdoUrl, clearConfigCache } from './config';
 
 const SPEC_SELECTOR: vscode.DocumentSelector = [
   { language: 'feature' },
@@ -43,10 +43,19 @@ export function activate(context: vscode.ExtensionContext): void {
 
   updateStatusBar(statusBarItem);
 
-  // Refresh status bar if config file is created or deleted
-  const configWatcher = vscode.workspace.createFileSystemWatcher('**/{ado-sync.json,azure-test-sync.json}');
-  configWatcher.onDidCreate(() => updateStatusBar(statusBarItem));
-  configWatcher.onDidDelete(() => updateStatusBar(statusBarItem));
+  // Refresh status bar and clear config cache when a config file is created, changed, or deleted
+  const configWatcher = vscode.workspace.createFileSystemWatcher(
+    '**/{ado-sync.json,ado-sync.yml,ado-sync.yaml,azure-test-sync.json,azure-test-sync.yml,azure-test-sync.yaml}'
+  );
+  const onConfigChange = () => {
+    clearConfigCache();
+    updateStatusBar(statusBarItem);
+    treeProvider.refresh();
+    codeLensProvider.refresh();
+  };
+  configWatcher.onDidCreate(onConfigChange);
+  configWatcher.onDidChange(onConfigChange);
+  configWatcher.onDidDelete(onConfigChange);
   context.subscriptions.push(configWatcher);
 
   // ─── Commands ───────────────────────────────────────────────────────────────
@@ -102,8 +111,8 @@ export function activate(context: vscode.ExtensionContext): void {
       initCommand().catch(() => { /* error shown inside initCommand */ });
     }),
 
-    vscode.commands.registerCommand('ado-sync.storyContext', () => {
-      storyContextCommand().catch(() => { /* error shown inside storyContextCommand */ });
+    vscode.commands.registerCommand('ado-sync.storyContext', (storyId?: string) => {
+      storyContextCommand(storyId).catch(() => { /* error shown inside storyContextCommand */ });
     }),
 
     vscode.commands.registerCommand('ado-sync.fetchTestCase', (tcId?: string) => {
