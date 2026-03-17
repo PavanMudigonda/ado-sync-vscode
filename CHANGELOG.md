@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.4
+
+- Patch release: packaging and versioning bump; no functional changes beyond 0.2.3
+
 ## 0.2.3
 
 - Security: replaced `shell: true` with `shell: false` in subprocess spawning; added Windows `.cmd` shim support for global installs
