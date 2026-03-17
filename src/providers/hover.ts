@@ -23,7 +23,7 @@ export class AdoSyncHoverProvider implements vscode.HoverProvider {
     let adoUrl = '';
     if (cfg.exists) {
       try {
-        const raw = require('fs').readFileSync(cfg.configPath, 'utf8');
+        const raw = fs.readFileSync(cfg.configPath, 'utf8');
         const config = JSON.parse(raw);
         const orgUrl: string = config.orgUrl ?? '';
         const project: string = config.project ?? '';

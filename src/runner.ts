@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as cp from 'child_process';
+import * as fs from 'fs';
 import * as path from 'path';
 
 let outputChannel: vscode.OutputChannel | undefined;
@@ -33,7 +34,7 @@ export async function runCli(
   return new Promise((resolve) => {
     // Try local node_modules/.bin first, fall back to global
     const localBin = path.join(cwd, 'node_modules', '.bin', 'ado-sync');
-    const command = require('fs').existsSync(localBin) ? localBin : 'ado-sync';
+    const command = fs.existsSync(localBin) ? localBin : 'ado-sync';
 
     const proc = cp.spawn(command, args, {
       cwd,
