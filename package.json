@@ -2,7 +2,7 @@
   "name": "ado-sync-vscode",
   "displayName": "ado-sync",
   "description": "Bidirectional sync between local test specs and Azure DevOps Test Cases",
-  "version": "0.1.0",
+  "version": "0.2.2",
   "publisher": "PavanMudigonda",
   "license": "MIT",
   "repository": {
@@ -173,7 +173,11 @@
         },
         "ado-sync.outputLevel": {
           "type": "string",
-          "enum": ["normal", "verbose", "quiet"],
+          "enum": [
+            "normal",
+            "verbose",
+            "quiet"
+          ],
           "default": "normal",
           "description": "Output verbosity level"
         }
