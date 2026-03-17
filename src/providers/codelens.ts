@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { readTagPrefix, readLinkPrefixes } from '../config';
+import { readTagSettings, escapeRegex, capitalize } from '../config';
 
 export class AdoSyncCodeLensProvider implements vscode.CodeLensProvider {
   private _onDidChangeCodeLenses = new vscode.EventEmitter<void>();
@@ -13,12 +13,10 @@ export class AdoSyncCodeLensProvider implements vscode.CodeLensProvider {
     const enabled = vscode.workspace.getConfiguration('ado-sync').get<boolean>('showCodeLens', true);
     if (!enabled) return [];
 
-    const tagPrefix = readTagPrefix();
-    const tcRe = new RegExp(`@${tagPrefix}:(\\d+)`, 'g');
-
-    const linkPrefixes = readLinkPrefixes();
+    const { tagPrefix, linkPrefixes } = readTagSettings();
+    const tcRe = new RegExp(`@${escapeRegex(tagPrefix)}:(\\d+)`, 'g');
     const linkRe = linkPrefixes.length
-      ? new RegExp(`@(${linkPrefixes.map((p) => escapeRegex(p)).join('|')}):(\\d+)`, 'g')
+      ? new RegExp(`@(${linkPrefixes.map(escapeRegex).join('|')}):(\\d+)`, 'g')
       : null;
 
     const lenses: vscode.CodeLens[] = [];
@@ -75,12 +73,4 @@ export class AdoSyncCodeLensProvider implements vscode.CodeLensProvider {
 
     return lenses;
   }
-}
-
-function escapeRegex(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
 }

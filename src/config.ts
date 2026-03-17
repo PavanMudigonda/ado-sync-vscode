@@ -49,7 +49,7 @@ export function clearConfigCache(): void {
  * Skips node_modules, .git, dist, and hidden folders.
  */
 const MAX_SCAN_DEPTH = 6;
-const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build', 'out', '.next', '.nuxt', 'coverage']);
+export const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build', 'out', '.next', '.nuxt', 'coverage']);
 
 function findConfigInWorkspace(root: string): string | undefined {
   // BFS queue: [dirPath, depth]
@@ -122,52 +122,57 @@ export function workspaceRoot(): string | undefined {
   return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
 }
 
-/**
- * Read sync.links[].prefix values from the workspace config file.
- * These are the link tag prefixes users configured (e.g. ['story', 'bug']).
- * Returns an empty array if not set or on error.
- */
-export function readLinkPrefixes(): string[] {
-  const cfg = resolveConfig();
-  if (!cfg.exists) return [];
-  try {
-    const raw = fs.readFileSync(cfg.configPath, 'utf8');
-    const ext = path.extname(cfg.configPath).toLowerCase();
-    let links: Array<{ prefix?: string }> = [];
-    if (ext === '.json') {
-      const parsed = JSON.parse(raw);
-      links = parsed?.sync?.links ?? [];
-    } else {
-      // YAML: extract prefix values under the links block with a simple regex
-      const matches = raw.matchAll(/^\s*-?\s*prefix\s*:\s*['"]?([A-Za-z0-9_-]+)['"]?/gm);
-      return Array.from(matches, (m) => m[1]);
-    }
-    return links.map((l) => l.prefix).filter((p): p is string => !!p);
-  } catch {
-    return [];
-  }
+export interface TagSettings {
+  tagPrefix: string;
+  linkPrefixes: string[];
 }
 
 /**
- * Read sync.tagPrefix from the workspace config file.
- * Supports JSON and YAML (yml/yaml). Returns 'tc' if not set or on error.
+ * Read both sync.tagPrefix and sync.links[].prefix from the config file in a
+ * single filesystem read. Returns defaults when no config exists or on error.
  */
-export function readTagPrefix(): string {
+export function readTagSettings(): TagSettings {
   const cfg = resolveConfig();
-  if (!cfg.exists) return 'tc';
+  if (!cfg.exists) return { tagPrefix: 'tc', linkPrefixes: [] };
   try {
     const raw = fs.readFileSync(cfg.configPath, 'utf8');
     const ext = path.extname(cfg.configPath).toLowerCase();
     if (ext === '.json') {
       const parsed = JSON.parse(raw);
-      return (parsed?.sync?.tagPrefix as string | undefined) ?? 'tc';
+      const tagPrefix: string = parsed?.sync?.tagPrefix ?? 'tc';
+      const links: Array<{ prefix?: string }> = parsed?.sync?.links ?? [];
+      const linkPrefixes = links.map((l) => l.prefix).filter((p): p is string => !!p);
+      return { tagPrefix, linkPrefixes };
     }
-    // YAML: find the tagPrefix key under the sync block
-    const m = raw.match(/^\s*tagPrefix\s*:\s*['"]?([A-Za-z0-9_-]+)['"]?/m);
-    return m?.[1] ?? 'tc';
+    // YAML: extract with simple regexes (no js-yaml dependency in this extension)
+    const tagM = raw.match(/^\s*tagPrefix\s*:\s*['"]?([A-Za-z0-9_-]+)['"]?/m);
+    const tagPrefix = tagM?.[1] ?? 'tc';
+    const linkMatches = raw.matchAll(/^\s*-?\s*prefix\s*:\s*['"]?([A-Za-z0-9_-]+)['"]?/gm);
+    const linkPrefixes = Array.from(linkMatches, (m) => m[1]);
+    return { tagPrefix, linkPrefixes };
   } catch {
-    return 'tc';
+    return { tagPrefix: 'tc', linkPrefixes: [] };
   }
+}
+
+/** Convenience wrapper — use readTagSettings() when you need both values. */
+export function readTagPrefix(): string {
+  return readTagSettings().tagPrefix;
+}
+
+/** Convenience wrapper — use readTagSettings() when you need both values. */
+export function readLinkPrefixes(): string[] {
+  return readTagSettings().linkPrefixes;
+}
+
+// ─── Shared string utilities used by providers ───────────────────────────────
+
+export function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 /** Show a friendly error when no config file is found. */

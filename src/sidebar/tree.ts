@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { workspaceRoot, readTagPrefix } from '../config';
+import { workspaceRoot, readTagPrefix, escapeRegex, SKIP_DIRS } from '../config';
 
 function makeTcRegex(tagPrefix: string): RegExp {
-  return new RegExp(`@${tagPrefix}:(\\d+)`, 'g');
+  return new RegExp(`@${escapeRegex(tagPrefix)}:(\\d+)`, 'g');
 }
 
 export class SpecFileItem extends vscode.TreeItem {
@@ -83,7 +83,6 @@ export class AdoSyncTreeProvider implements vscode.TreeDataProvider<TreeNode> {
   }
 
   private walkDir(dir: string, root: string, items: SpecFileItem[], tcRe: RegExp): void {
-    if (dir.includes('node_modules') || dir.includes('.git')) return;
 
     let entries: fs.Dirent[];
     try {
@@ -95,6 +94,7 @@ export class AdoSyncTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     for (const entry of entries) {
       const fullPath = path.join(dir, entry.name);
       if (entry.isDirectory()) {
+        if (SKIP_DIRS.has(entry.name) || entry.name.startsWith('.')) continue;
         this.walkDir(fullPath, root, items, tcRe);
       } else if (entry.isFile() && (entry.name.endsWith('.feature') || entry.name.endsWith('.md'))) {
         const content = fs.readFileSync(fullPath, 'utf8');

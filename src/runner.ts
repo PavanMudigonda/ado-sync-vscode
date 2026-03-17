@@ -30,20 +30,14 @@ export async function runCli(
 ): Promise<RunResult> {
   const channel = getOutputChannel();
   channel.show(true);
-
-  // Append outputLevel flag based on user setting
-  const outputLevel = vscode.workspace.getConfiguration('ado-sync').get<string>('outputLevel', 'normal');
-  const levelArgs = outputLevel === 'verbose' ? ['--verbose'] : outputLevel === 'quiet' ? ['--quiet'] : [];
-  const allArgs = [...args, ...levelArgs];
-
-  channel.appendLine(`\n$ ado-sync ${allArgs.join(' ')}\n`);
+  channel.appendLine(`\n$ ado-sync ${args.join(' ')}\n`);
 
   return new Promise((resolve) => {
     // Try local node_modules/.bin first, fall back to global
     const localBin = path.join(cwd, 'node_modules', '.bin', 'ado-sync');
     const command = fs.existsSync(localBin) ? localBin : 'ado-sync';
 
-    const proc = cp.spawn(command, allArgs, {
+    const proc = cp.spawn(command, args, {
       cwd,
       env: { ...process.env, ...env },
       shell: true, // works on all platforms, including nvm/fnm managed Node installs

@@ -1,23 +1,12 @@
 import * as vscode from 'vscode';
-import { resolveConfig, parseConfigFile, buildAdoUrl, readTagPrefix, readLinkPrefixes } from '../config';
-
-function escapeRegex(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
+import { resolveConfig, parseConfigFile, buildAdoUrl, readTagSettings, escapeRegex, capitalize } from '../config';
 
 export class AdoSyncHoverProvider implements vscode.HoverProvider {
   provideHover(
     document: vscode.TextDocument,
     position: vscode.Position,
   ): vscode.ProviderResult<vscode.Hover> {
-    const tagPrefix = readTagPrefix();
-    const linkPrefixes = readLinkPrefixes();
-
-    // Build a combined word pattern that matches both TC tags and link tags
+    const { tagPrefix, linkPrefixes } = readTagSettings();
     const allPrefixes = [tagPrefix, ...linkPrefixes].map(escapeRegex);
     const wordPattern = new RegExp(`@(?:${allPrefixes.join('|')}):\\d+`);
     const capturePattern = new RegExp(`@(${allPrefixes.join('|')}):(\\d+)`);
