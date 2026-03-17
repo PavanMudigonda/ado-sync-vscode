@@ -13,10 +13,11 @@ export async function validateCommand(): Promise<void> {
     {
       location: vscode.ProgressLocation.Notification,
       title: 'ado-sync: Validating config...',
-      cancellable: false,
+      cancellable: true,
     },
-    async () => {
-      const result = await runCli(args, root);
+    async (_, token) => {
+      const result = await runCli(args, root, undefined, token);
+      if (token.isCancellationRequested) return;
       if (result.exitCode === 0) {
         vscode.window.showInformationMessage('ado-sync: Config and Azure connection are valid.');
       } else {

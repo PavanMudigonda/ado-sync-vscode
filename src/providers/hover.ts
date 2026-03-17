@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { resolveConfig } from '../config';
+import { resolveConfig, parseConfigFile, buildAdoUrl } from '../config';
 
 // Matches @tc:12345
 const TC_TAG_RE = /@tc:(\d+)/;
@@ -19,19 +19,11 @@ export class AdoSyncHoverProvider implements vscode.HoverProvider {
     const tcId = match[1];
     const cfg = resolveConfig();
 
-    // Build ADO URL from config if available
     let adoUrl = '';
     if (cfg.exists) {
-      try {
-        const raw = fs.readFileSync(cfg.configPath, 'utf8');
-        const config = JSON.parse(raw);
-        const orgUrl: string = config.orgUrl ?? '';
-        const project: string = config.project ?? '';
-        if (orgUrl && project) {
-          adoUrl = `${orgUrl.replace(/\/$/, '')}/${project}/_testManagement/results?testCaseId=${tcId}`;
-        }
-      } catch {
-        // ignore parse errors
+      const parsed = parseConfigFile(cfg.configPath);
+      if (parsed?.orgUrl && parsed?.project) {
+        adoUrl = buildAdoUrl(tcId, parsed.orgUrl, parsed.project);
       }
     }
 

@@ -7,6 +7,30 @@ export interface AdoSyncConfig {
   exists: boolean;
 }
 
+export interface AdoProjectConfig {
+  orgUrl: string;
+  project: string;
+}
+
+/** Read and parse the ado-sync.json config file. Returns undefined on error. */
+export function parseConfigFile(configPath: string): AdoProjectConfig | undefined {
+  try {
+    const raw = fs.readFileSync(configPath, 'utf8');
+    const config = JSON.parse(raw);
+    return {
+      orgUrl: (config.orgUrl ?? '').replace(/\/$/, ''),
+      project: config.project ?? '',
+    };
+  } catch {
+    return undefined;
+  }
+}
+
+/** Build the Azure DevOps URL for a test case work item. */
+export function buildAdoUrl(tcId: string, orgUrl: string, project: string): string {
+  return `${orgUrl}/${project}/_workItems/edit/${tcId}`;
+}
+
 /** Locate the ado-sync.json config file in the workspace. */
 export function resolveConfig(): AdoSyncConfig {
   const workspaceFolders = vscode.workspace.workspaceFolders;

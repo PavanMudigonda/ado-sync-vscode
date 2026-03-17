@@ -37,10 +37,10 @@ export class AdoSyncCodeLensProvider implements vscode.CodeLensProvider {
           }),
         );
 
-        // CodeLens: push this file
+        // CodeLens: push all specs
         lenses.push(
           new vscode.CodeLens(range, {
-            title: '$(cloud-upload) Push',
+            title: '$(cloud-upload) Push All',
             command: 'ado-sync.push',
           }),
         );

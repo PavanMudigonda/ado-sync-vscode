@@ -26,20 +26,33 @@ export async function runCli(
   args: string[],
   cwd: string,
   env?: Record<string, string>,
+  token?: vscode.CancellationToken,
 ): Promise<RunResult> {
   const channel = getOutputChannel();
   channel.show(true);
-  channel.appendLine(`\n$ ado-sync ${args.join(' ')}\n`);
+
+  // Append outputLevel flag based on user setting
+  const outputLevel = vscode.workspace.getConfiguration('ado-sync').get<string>('outputLevel', 'normal');
+  const levelArgs = outputLevel === 'verbose' ? ['--verbose'] : outputLevel === 'quiet' ? ['--quiet'] : [];
+  const allArgs = [...args, ...levelArgs];
+
+  channel.appendLine(`\n$ ado-sync ${allArgs.join(' ')}\n`);
 
   return new Promise((resolve) => {
     // Try local node_modules/.bin first, fall back to global
     const localBin = path.join(cwd, 'node_modules', '.bin', 'ado-sync');
     const command = fs.existsSync(localBin) ? localBin : 'ado-sync';
 
-    const proc = cp.spawn(command, args, {
+    const proc = cp.spawn(command, allArgs, {
       cwd,
       env: { ...process.env, ...env },
-      shell: process.platform === 'win32',
+      shell: true, // works on all platforms, including nvm/fnm managed Node installs
+    });
+
+    // Wire up cancellation
+    const cancelDisposable = token?.onCancellationRequested(() => {
+      proc.kill();
+      channel.appendLine('\n[cancelled]');
     });
 
     let stdout = '';
@@ -58,12 +71,14 @@ export async function runCli(
     });
 
     proc.on('close', (code) => {
+      cancelDisposable?.dispose();
       const exitCode = code ?? 1;
       channel.appendLine(`\n[exit ${exitCode}]`);
       resolve({ stdout, stderr, exitCode });
     });
 
     proc.on('error', (err) => {
+      cancelDisposable?.dispose();
       const msg = `Failed to start ado-sync: ${err.message}\nMake sure ado-sync is installed: npm install -g ado-sync`;
       channel.appendLine(msg);
       resolve({ stdout: '', stderr: msg, exitCode: 1 });

@@ -45,10 +45,11 @@ export async function generateCommand(): Promise<void> {
     {
       location: vscode.ProgressLocation.Notification,
       title: `ado-sync: Generating ${format.label} spec(s) for story ${storyIds}...`,
-      cancellable: false,
+      cancellable: true,
     },
-    async () => {
-      const result = await runCli(args, root);
+    async (_, token) => {
+      const result = await runCli(args, root, undefined, token);
+      if (token.isCancellationRequested) return;
       if (result.exitCode === 0) {
         vscode.window.showInformationMessage('ado-sync: Spec(s) generated. See Output panel.');
       } else {

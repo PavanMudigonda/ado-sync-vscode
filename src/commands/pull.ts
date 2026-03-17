@@ -14,10 +14,11 @@ export async function pullCommand(dryRun = false): Promise<void> {
     {
       location: vscode.ProgressLocation.Notification,
       title: dryRun ? 'ado-sync: Previewing pull...' : 'ado-sync: Pulling from ADO...',
-      cancellable: false,
+      cancellable: true,
     },
-    async () => {
-      const result = await runCli(args, root);
+    async (_, token) => {
+      const result = await runCli(args, root, undefined, token);
+      if (token.isCancellationRequested) return;
       if (result.exitCode === 0) {
         vscode.window.showInformationMessage(
           dryRun ? 'ado-sync: Dry run complete. See Output panel.' : 'ado-sync: Pull complete.',

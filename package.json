@@ -76,6 +76,26 @@
         "command": "ado-sync.refreshSidebar",
         "title": "Refresh",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "ado-sync.publishResults",
+        "title": "ado-sync: Publish Test Results",
+        "icon": "$(report)"
+      },
+      {
+        "command": "ado-sync.diff",
+        "title": "ado-sync: Diff",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "ado-sync.init",
+        "title": "ado-sync: Initialize Config",
+        "icon": "$(add)"
+      },
+      {
+        "command": "ado-sync.storyContext",
+        "title": "ado-sync: Show Story Context",
+        "icon": "$(info)"
       }
     ],
     "menus": {
@@ -89,6 +109,11 @@
           "when": "resourceExtname == .feature || resourceExtname == .md",
           "command": "ado-sync.status",
           "group": "ado-sync@2"
+        },
+        {
+          "when": "resourceExtname == .feature || resourceExtname == .md",
+          "command": "ado-sync.diff",
+          "group": "ado-sync@3"
         }
       ],
       "view/title": [
