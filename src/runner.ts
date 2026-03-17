@@ -53,7 +53,7 @@ export async function runCli(
     // Kill the process if it exceeds the timeout
     const timeoutHandle = setTimeout(() => {
       proc.kill();
-      channel.appendLine('\n[timeout: process killed after 120s]');
+      channel.appendLine(`\n[timeout: process killed after ${SPAWN_TIMEOUT_MS / 1000}s]`);
     }, SPAWN_TIMEOUT_MS);
 
     // Wire up cancellation
@@ -88,9 +88,23 @@ export async function runCli(
     proc.on('error', (err) => {
       clearTimeout(timeoutHandle);
       cancelDisposable?.dispose();
-      const msg = `Failed to start ado-sync: ${err.message}\nMake sure ado-sync is installed: npm install -g ado-sync`;
-      channel.appendLine(msg);
-      resolve({ stdout: '', stderr: msg, exitCode: 1 });
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+        const msg = 'ado-sync CLI not found. Run: npm install -g ado-sync';
+        channel.appendLine(msg);
+        vscode.window.showWarningMessage(
+          'ado-sync: CLI not found. Install it to use this extension.',
+          'Install',
+        ).then((action) => {
+          if (action === 'Install') {
+            vscode.env.openExternal(vscode.Uri.parse('https://www.npmjs.com/package/ado-sync'));
+          }
+        });
+        resolve({ stdout: '', stderr: msg, exitCode: 1 });
+      } else {
+        const msg = `Failed to start ado-sync: ${err.message}`;
+        channel.appendLine(msg);
+        resolve({ stdout: '', stderr: msg, exitCode: 1 });
+      }
     });
   });
 }

@@ -83,11 +83,15 @@ export function activate(extensionContext: vscode.ExtensionContext): void {
   const configWatcher = vscode.workspace.createFileSystemWatcher(
     '**/{ado-sync.json,ado-sync.yml,ado-sync.yaml,azure-test-sync.json,azure-test-sync.yml,azure-test-sync.yaml}'
   );
+  let _configDebounce: ReturnType<typeof setTimeout> | undefined;
   const onConfigChange = () => {
-    clearConfigCache();
-    updateStatusBar(statusBarItem);
-    treeProvider.refresh();
-    codeLensProvider.refresh();
+    clearTimeout(_configDebounce);
+    _configDebounce = setTimeout(() => {
+      clearConfigCache();
+      updateStatusBar(statusBarItem);
+      treeProvider.refresh();
+      codeLensProvider.refresh();
+    }, 300);
   };
   configWatcher.onDidCreate(onConfigChange);
   configWatcher.onDidChange(onConfigChange);
