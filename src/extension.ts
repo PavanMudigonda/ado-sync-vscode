@@ -9,6 +9,7 @@ import { publishResultsCommand } from './commands/publishResults';
 import { diffCommand } from './commands/diff';
 import { initCommand } from './commands/init';
 import { storyContextCommand } from './commands/storyContext';
+import { fetchTestCaseCommand } from './commands/fetchTestCase';
 import { AdoSyncCodeLensProvider } from './providers/codelens';
 import { AdoSyncHoverProvider } from './providers/hover';
 import { AdoSyncTreeProvider } from './sidebar/tree';
@@ -103,6 +104,10 @@ export function activate(context: vscode.ExtensionContext): void {
 
     vscode.commands.registerCommand('ado-sync.storyContext', () => {
       storyContextCommand().catch(() => { /* error shown inside storyContextCommand */ });
+    }),
+
+    vscode.commands.registerCommand('ado-sync.fetchTestCase', (tcId?: string) => {
+      fetchTestCaseCommand(tcId).catch(() => { /* error shown inside fetchTestCaseCommand */ });
     }),
 
     vscode.commands.registerCommand('ado-sync.openInAdo', (tcId: string) => {

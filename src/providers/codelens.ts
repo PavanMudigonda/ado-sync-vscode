@@ -37,6 +37,15 @@ export class AdoSyncCodeLensProvider implements vscode.CodeLensProvider {
           }),
         );
 
+        // CodeLens: fetch test case from ADO
+        lenses.push(
+          new vscode.CodeLens(range, {
+            title: `$(cloud-download) Fetch TC #${tcId}`,
+            command: 'ado-sync.fetchTestCase',
+            arguments: [tcId],
+          }),
+        );
+
         // CodeLens: push all specs
         lenses.push(
           new vscode.CodeLens(range, {

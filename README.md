@@ -29,6 +29,8 @@ Bidirectional sync between local test specs (`.feature`, `.md`) and Azure DevOps
 | `ado-sync: Status` | Show diff between local and ADO |
 | `ado-sync: Validate Config` | Check config validity and Azure connection |
 | `ado-sync: Generate Spec from Story` | Generate `.feature` or `.md` from an ADO User Story ID |
+| `ado-sync: Fetch Test Case` | Fetch a specific ADO Test Case by ID and display its details |
+| `ado-sync: Publish Test Results` | Upload local test result files (Playwright, Cucumber, JUnit, TRX, NUnit, CTRF) to an ADO Test Run |
 
 ### CodeLens
 
@@ -36,7 +38,7 @@ Every `@tc:12345` tag in a `.feature` or `.md` file gets inline links:
 
 ```gherkin
   @tc:1234
-  Scenario: Login with valid credentials   ← $(link-external) View TC #1234 in ADO | $(cloud-upload) Push
+  Scenario: Login with valid credentials   ← $(link-external) View TC #1234 in ADO | $(cloud-download) Fetch TC #1234 | $(cloud-upload) Push
 ```
 
 ### Hover

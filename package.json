@@ -96,6 +96,11 @@
         "command": "ado-sync.storyContext",
         "title": "ado-sync: Show Story Context",
         "icon": "$(info)"
+      },
+      {
+        "command": "ado-sync.fetchTestCase",
+        "title": "ado-sync: Fetch Test Case",
+        "icon": "$(cloud-download)"
       }
     ],
     "menus": {
@@ -114,6 +119,11 @@
           "when": "resourceExtname == .feature || resourceExtname == .md",
           "command": "ado-sync.diff",
           "group": "ado-sync@3"
+        },
+        {
+          "when": "resourceExtname == .feature || resourceExtname == .md",
+          "command": "ado-sync.publishResults",
+          "group": "ado-sync@4"
         }
       ],
       "view/title": [
