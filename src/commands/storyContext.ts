@@ -26,6 +26,7 @@ export async function storyContextCommand(storyId?: string): Promise<void> {
     workspaceRoot()!,
     {
       title: `ado-sync: Fetching story context for #${storyId}...`,
+      successMessage: `ado-sync: Story context for #${storyId} ready. See Output panel.`,
       errorMessage: 'ado-sync: Story context failed. See Output panel.',
     },
   );

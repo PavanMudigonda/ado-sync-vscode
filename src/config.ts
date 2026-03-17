@@ -1,6 +1,16 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as yaml from 'js-yaml';
+
+// Lazy reference to the output channel to avoid a circular dependency
+// (runner.ts imports config.ts, so we can't import runner.ts at module level).
+let _log: ((msg: string) => void) | undefined;
+export function setConfigLogger(log: (msg: string) => void): void { _log = log; }
+function logError(context: string, err: unknown): void {
+  const msg = `[error] ${context}: ${err instanceof Error ? err.message : String(err)}`;
+  if (_log) { _log(msg); } else { console.error(msg); }
+}
 
 export interface AdoSyncConfig {
   configPath: string;
@@ -22,7 +32,7 @@ export function parseConfigFile(configPath: string): AdoProjectConfig | undefine
       project: config.project ?? '',
     };
   } catch (err) {
-    console.error(`[ado-sync] Failed to parse config file ${configPath}: ${err instanceof Error ? err.message : String(err)}`);
+    logError(`parseConfigFile ${configPath}`, err);
     return undefined;
   }
 }
@@ -149,14 +159,15 @@ export function readTagSettings(): TagSettings {
       const linkPrefixes = links.map((l) => l.prefix).filter((p): p is string => !!p);
       return { tagPrefix, linkPrefixes };
     }
-    // YAML: extract with simple regexes (no js-yaml dependency in this extension)
-    const tagM = raw.match(/^\s*tagPrefix\s*:\s*['"]?([A-Za-z0-9_-]+)['"]?/m);
-    const tagPrefix = tagM?.[1] ?? 'tc';
-    const linkMatches = raw.matchAll(/^\s*-?\s*prefix\s*:\s*['"]?([A-Za-z0-9_-]+)['"]?/gm);
-    const linkPrefixes = Array.from(linkMatches, (m) => m[1]);
+    // YAML: use js-yaml for correct parsing
+    const doc = yaml.load(raw) as Record<string, unknown> | null;
+    const sync = (doc as Record<string, unknown> | null)?.['sync'] as Record<string, unknown> | undefined;
+    const tagPrefix: string = (sync?.['tagPrefix'] as string | undefined) ?? 'tc';
+    const links: Array<{ prefix?: string }> = (sync?.['links'] as Array<{ prefix?: string }>) ?? [];
+    const linkPrefixes = links.map((l) => l.prefix).filter((p): p is string => !!p);
     return { tagPrefix, linkPrefixes };
   } catch (err) {
-    console.error(`[ado-sync] Failed to read tag settings from ${cfg.configPath}: ${err instanceof Error ? err.message : String(err)}`);
+    logError(`readTagSettings ${cfg.configPath}`, err);
     return { tagPrefix: 'tc', linkPrefixes: [] };
   }
 }

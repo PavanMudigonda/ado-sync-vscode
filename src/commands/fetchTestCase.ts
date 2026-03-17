@@ -26,6 +26,7 @@ export async function fetchTestCaseCommand(tcId?: string): Promise<void> {
     workspaceRoot()!,
     {
       title: `ado-sync: Fetching test case #${tcId}...`,
+      successMessage: `ado-sync: TC #${tcId} fetched. See Output panel.`,
       errorMessage: `ado-sync: Failed to fetch TC #${tcId}. See Output panel.`,
     },
   );

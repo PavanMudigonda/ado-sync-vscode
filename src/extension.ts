@@ -1,4 +1,7 @@
 import * as vscode from 'vscode';
+import * as cp from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
 
 import { pushCommand } from './commands/push';
 import { pullCommand } from './commands/pull';
@@ -13,7 +16,7 @@ import { fetchTestCaseCommand } from './commands/fetchTestCase';
 import { AdoSyncCodeLensProvider } from './providers/codelens';
 import { AdoSyncHoverProvider } from './providers/hover';
 import { AdoSyncTreeProvider } from './sidebar/tree';
-import { resolveConfig, parseConfigFile, buildAdoUrl, clearConfigCache } from './config';
+import { resolveConfig, parseConfigFile, buildAdoUrl, clearConfigCache, setConfigLogger } from './config';
 import { getOutputChannel } from './runner';
 
 const SPEC_SELECTOR: vscode.DocumentSelector = [
@@ -27,7 +30,34 @@ function logError(context: string, err: unknown): void {
   getOutputChannel().appendLine(`[error] ${context}: ${msg}`);
 }
 
+function checkCliInstalled(): void {
+  const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  const localBin = root
+    ? path.join(root, 'node_modules', '.bin', process.platform === 'win32' ? 'ado-sync.cmd' : 'ado-sync')
+    : undefined;
+
+  if (localBin && fs.existsSync(localBin)) return;
+
+  // Check global install
+  const globalCmd = process.platform === 'win32' ? 'where' : 'which';
+  cp.execFile(globalCmd, ['ado-sync'], (err) => {
+    if (err) {
+      vscode.window.showWarningMessage(
+        'ado-sync: CLI not found. Install it to use this extension.',
+        'Install',
+      ).then((action) => {
+        if (action === 'Install') {
+          vscode.env.openExternal(vscode.Uri.parse('https://www.npmjs.com/package/ado-sync'));
+        }
+      });
+    }
+  });
+}
+
 export function activate(extensionContext: vscode.ExtensionContext): void {
+  checkCliInstalled();
+  setConfigLogger((msg) => getOutputChannel().appendLine(msg));
+
   // ─── Providers ──────────────────────────────────────────────────────────────
 
   const codeLensProvider = new AdoSyncCodeLensProvider();

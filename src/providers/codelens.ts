@@ -5,7 +5,16 @@ export class AdoSyncCodeLensProvider implements vscode.CodeLensProvider {
   private _onDidChangeCodeLenses = new vscode.EventEmitter<void>();
   readonly onDidChangeCodeLenses = this._onDidChangeCodeLenses.event;
 
+  private _cachedTagPrefix: string | undefined;
+  private _cachedLinkPrefixes: string[] | undefined;
+  private _cachedTcRe: RegExp | undefined;
+  private _cachedLinkRe: RegExp | null | undefined;
+
   refresh(): void {
+    this._cachedTagPrefix = undefined;
+    this._cachedLinkPrefixes = undefined;
+    this._cachedTcRe = undefined;
+    this._cachedLinkRe = undefined;
     this._onDidChangeCodeLenses.fire();
   }
 
@@ -13,11 +22,17 @@ export class AdoSyncCodeLensProvider implements vscode.CodeLensProvider {
     const enabled = vscode.workspace.getConfiguration('ado-sync').get<boolean>('showCodeLens', true);
     if (!enabled) return [];
 
-    const { tagPrefix, linkPrefixes } = readTagSettings();
-    const tcRe = new RegExp(`@${escapeRegex(tagPrefix)}:(\\d+)`, 'g');
-    const linkRe = linkPrefixes.length
-      ? new RegExp(`@(${linkPrefixes.map(escapeRegex).join('|')}):(\\d+)`, 'g')
-      : null;
+    if (this._cachedTcRe === undefined) {
+      const { tagPrefix, linkPrefixes } = readTagSettings();
+      this._cachedTagPrefix = tagPrefix;
+      this._cachedLinkPrefixes = linkPrefixes;
+      this._cachedTcRe = new RegExp(`@${escapeRegex(tagPrefix)}:(\\d+)`, 'g');
+      this._cachedLinkRe = linkPrefixes.length
+        ? new RegExp(`@(${linkPrefixes.map(escapeRegex).join('|')}):(\\d+)`, 'g')
+        : null;
+    }
+    const tcRe = this._cachedTcRe;
+    const linkRe = this._cachedLinkRe ?? null;
 
     const lenses: vscode.CodeLens[] = [];
     const lines = document.getText().split('\n');
