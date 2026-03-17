@@ -159,7 +159,7 @@ export function activate(extensionContext: vscode.ExtensionContext): void {
 }
 
 export function deactivate(): void {
-  // nothing to clean up — VS Code disposes subscriptions automatically
+  getOutputChannel().dispose();
 }
 
 function updateStatusBar(item: vscode.StatusBarItem): void {

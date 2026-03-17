@@ -62,7 +62,6 @@ A status bar item shows the current sync state. Click it to run `ado-sync status
 | `ado-sync.configPath` | `""` | Path to config file (relative to workspace root). Leave empty to auto-detect. |
 | `ado-sync.showCodeLens` | `true` | Show CodeLens links above `@tc:` tags |
 | `ado-sync.autoStatus` | `false` | Run status check automatically when a spec file is saved |
-| `ado-sync.outputLevel` | `"normal"` | Output verbosity: `normal`, `verbose`, or `quiet` |
 
 ---
 
