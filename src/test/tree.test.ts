@@ -33,7 +33,6 @@ describe('AdoSyncTreeProvider — scenario name detection', () => {
       '    Given I am on the login page',
     ].join('\n'));
     const provider = new AdoSyncTreeProvider();
-    const specItem = new SpecFileItem('login.feature', file, 1 as never);
     const cases = await (provider as never as { getTestCasesInFile(f: string): Promise<TestCaseItem[]> }).getTestCasesInFile(file);
     expect(cases).toHaveLength(1);
     expect(cases[0].label).toBe('Valid login');

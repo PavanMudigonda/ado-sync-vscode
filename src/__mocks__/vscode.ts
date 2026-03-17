@@ -123,9 +123,9 @@ export const window = {
     dispose: () => {},
     name: _name,
   }),
-  showErrorMessage: (..._args: unknown[]) => Promise.resolve(undefined),
-  showWarningMessage: (..._args: unknown[]) => Promise.resolve(undefined),
-  showInformationMessage: (..._args: unknown[]) => Promise.resolve(undefined),
+  showErrorMessage: () => Promise.resolve(undefined),
+  showWarningMessage: () => Promise.resolve(undefined),
+  showInformationMessage: () => Promise.resolve(undefined),
   createStatusBarItem: () => ({
     text: '',
     tooltip: '',

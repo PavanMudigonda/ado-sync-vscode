@@ -8,24 +8,6 @@ import { AdoSyncHoverProvider } from '../providers/hover';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function makeDocAt(content: string, line: number, char: number) {
-  const lines = content.split('\n');
-  return {
-    getText: () => content,
-    lineCount: lines.length,
-    getWordRangeAtPosition: (_pos: unknown, pattern: RegExp) => {
-      const lineText = lines[line] ?? '';
-      const match = pattern.exec(lineText);
-      if (!match) return undefined;
-      return { start: { line, character: match.index }, end: { line, character: match.index + match[0].length } };
-    },
-    getText2: (range: unknown) => {
-      const r = range as { start: { line: number; character: number }; end: { character: number } };
-      return lines[r.start.line].slice(r.start.character, r.end.character);
-    },
-  };
-}
-
 // Extend the doc to implement getText(range?)
 function makeHoverDoc(content: string, tagLine = 0) {
   const lines = content.split('\n');

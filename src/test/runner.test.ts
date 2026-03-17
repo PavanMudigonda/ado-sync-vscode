@@ -27,18 +27,6 @@ afterEach(() => {
   mockProc.on.mockReset();
 });
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function triggerClose(code: number) {
-  const closeHandler = mockProc.on.mock.calls.find(([event]) => event === 'close')?.[1] as ((code: number) => void) | undefined;
-  closeHandler?.(code);
-}
-
-function triggerError(err: Error) {
-  const errorHandler = mockProc.on.mock.calls.find(([event]) => event === 'error')?.[1] as ((err: Error) => void) | undefined;
-  errorHandler?.(err);
-}
-
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('runCli', () => {
