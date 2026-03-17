@@ -1,0 +1,74 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write   # needed to create GitHub Releases and upload assets
+
+jobs:
+  release:
+    name: Package & Publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (production)
+        run: npm run build
+
+      # ── Derive version from tag ──────────────────────────────────────────────
+      - name: Get version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      # ── Sync package.json version with the tag ───────────────────────────────
+      - name: Bump package.json version
+        run: npm version "${{ steps.version.outputs.version }}" --no-git-tag-version
+
+      # ── Package .vsix ────────────────────────────────────────────────────────
+      - name: Package extension
+        run: npx vsce package --no-dependencies
+        # produces ado-sync-vscode-<version>.vsix
+
+      - name: Set vsix filename
+        id: vsix
+        run: echo "file=ado-sync-vscode-${{ steps.version.outputs.version }}.vsix" >> "$GITHUB_OUTPUT"
+
+      # ── Publish to VS Code Marketplace ───────────────────────────────────────
+      - name: Publish to Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: npx vsce publish --no-dependencies --packagePath "${{ steps.vsix.outputs.file }}"
+
+      # ── Create GitHub Release with .vsix attached ─────────────────────────────
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: v${{ steps.version.outputs.version }}
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: ${{ steps.vsix.outputs.file }}
+          body: |
+            ## Install
+
+            **From Marketplace** (recommended):
+            ```
+            Cmd+Shift+X → search "ado-sync" → Install
+            ```
+
+            **From `.vsix`** (manual):
+            ```bash
+            code --install-extension ${{ steps.vsix.outputs.file }}
+            ```
