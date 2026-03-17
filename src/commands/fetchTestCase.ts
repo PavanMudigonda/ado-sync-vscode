@@ -1,12 +1,10 @@
 import * as vscode from 'vscode';
 import { requireConfig, workspaceRoot } from '../config';
-import { runCli } from '../runner';
+import { runCliWithProgress } from '../runner';
 
 export async function fetchTestCaseCommand(tcId?: string): Promise<void> {
   const cfg = requireConfig();
   if (!cfg) return;
-
-  const root = workspaceRoot()!;
 
   if (!tcId) {
     const input = await vscode.window.showInputBox({
@@ -23,20 +21,12 @@ export async function fetchTestCaseCommand(tcId?: string): Promise<void> {
     tcId = input.trim();
   }
 
-  const args = ['fetch-tc', '--id', tcId, '--config', cfg.configPath];
-
-  await vscode.window.withProgress(
+  await runCliWithProgress(
+    ['fetch-tc', '--id', tcId, '--config', cfg.configPath],
+    workspaceRoot()!,
     {
-      location: vscode.ProgressLocation.Notification,
       title: `ado-sync: Fetching test case #${tcId}...`,
-      cancellable: true,
-    },
-    async (_, token) => {
-      const result = await runCli(args, root, undefined, token);
-      if (token.isCancellationRequested) return;
-      if (result.exitCode !== 0) {
-        vscode.window.showErrorMessage(`ado-sync: Failed to fetch TC #${tcId}. See Output panel.`);
-      }
+      errorMessage: `ado-sync: Failed to fetch TC #${tcId}. See Output panel.`,
     },
   );
 }

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { workspaceRoot, readTagPrefix, escapeRegex, SKIP_DIRS } from '../config';
+import { getOutputChannel } from '../runner';
 
 function makeTcRegex(tagPrefix: string): RegExp {
   return new RegExp(`@${escapeRegex(tagPrefix)}:(\\d+)`, 'g');
@@ -72,47 +73,63 @@ export class AdoSyncTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     return [];
   }
 
-  private getSpecFiles(): SpecFileItem[] {
+  private async getSpecFiles(): Promise<SpecFileItem[]> {
     const root = workspaceRoot();
     if (!root) return [];
 
-    const tcRe = makeTcRegex(readTagPrefix());
+    const tagPrefix = readTagPrefix();
     const items: SpecFileItem[] = [];
-    this.walkDir(root, root, items, tcRe);
+    await this.walkDir(root, root, tagPrefix, items);
     return items;
   }
 
-  private walkDir(dir: string, root: string, items: SpecFileItem[], tcRe: RegExp): void {
-
+  private async walkDir(dir: string, root: string, tagPrefix: string, items: SpecFileItem[]): Promise<void> {
     let entries: fs.Dirent[];
     try {
-      entries = fs.readdirSync(dir, { withFileTypes: true });
-    } catch {
+      entries = await fs.promises.readdir(dir, { withFileTypes: true });
+    } catch (err) {
+      getOutputChannel().appendLine(`[warn] Could not read directory ${dir}: ${err instanceof Error ? err.message : String(err)}`);
       return;
     }
 
+    const tasks: Promise<void>[] = [];
+
     for (const entry of entries) {
       const fullPath = path.join(dir, entry.name);
+
+      if (entry.isSymbolicLink()) {
+        // Skip symlinks to prevent following cycles
+        continue;
+      }
+
       if (entry.isDirectory()) {
         if (SKIP_DIRS.has(entry.name) || entry.name.startsWith('.')) continue;
-        this.walkDir(fullPath, root, items, tcRe);
+        tasks.push(this.walkDir(fullPath, root, tagPrefix, items));
       } else if (entry.isFile() && (entry.name.endsWith('.feature') || entry.name.endsWith('.md'))) {
-        const content = fs.readFileSync(fullPath, 'utf8');
-        tcRe.lastIndex = 0;
-        if (tcRe.test(content)) {
-          tcRe.lastIndex = 0;
-          const rel = path.relative(root, fullPath);
-          items.push(new SpecFileItem(rel, fullPath, vscode.TreeItemCollapsibleState.Collapsed));
-        }
+        tasks.push((async () => {
+          try {
+            const content = await fs.promises.readFile(fullPath, 'utf8');
+            // Create a fresh regex per file to avoid lastIndex races with parallel tasks
+            const tcRe = makeTcRegex(tagPrefix);
+            if (tcRe.test(content)) {
+              const rel = path.relative(root, fullPath);
+              items.push(new SpecFileItem(rel, fullPath, vscode.TreeItemCollapsibleState.Collapsed));
+            }
+          } catch (err) {
+            getOutputChannel().appendLine(`[warn] Could not read file ${fullPath}: ${err instanceof Error ? err.message : String(err)}`);
+          }
+        })());
       }
     }
+
+    await Promise.all(tasks);
   }
 
-  private getTestCasesInFile(filePath: string): TestCaseItem[] {
+  private async getTestCasesInFile(filePath: string): Promise<TestCaseItem[]> {
     const tcRe = makeTcRegex(readTagPrefix());
     const items: TestCaseItem[] = [];
     try {
-      const lines = fs.readFileSync(filePath, 'utf8').split('\n');
+      const lines = (await fs.promises.readFile(filePath, 'utf8')).split('\n');
       const isFeature = filePath.endsWith('.feature');
       for (let i = 0; i < lines.length; i++) {
         tcRe.lastIndex = 0;
@@ -122,14 +139,15 @@ export class AdoSyncTreeProvider implements vscode.TreeDataProvider<TreeNode> {
           items.push(new TestCaseItem(match[1], i, filePath, scenarioName));
         }
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      getOutputChannel().appendLine(`[warn] Could not parse test cases in ${filePath}: ${err instanceof Error ? err.message : String(err)}`);
     }
     return items;
   }
 
   private findScenarioName(lines: string[], tagLine: number, isFeature: boolean): string | undefined {
-    for (let j = tagLine + 1; j < Math.min(tagLine + 4, lines.length); j++) {
+    // Search up to 6 lines after the tag to accommodate comments between tag and Scenario:
+    for (let j = tagLine + 1; j < Math.min(tagLine + 7, lines.length); j++) {
       const trimmed = lines[j].trim();
       if (isFeature) {
         const m = trimmed.match(/^Scenario(?:\s+Outline)?:\s*(.+)/i);

@@ -14,6 +14,7 @@ import { AdoSyncCodeLensProvider } from './providers/codelens';
 import { AdoSyncHoverProvider } from './providers/hover';
 import { AdoSyncTreeProvider } from './sidebar/tree';
 import { resolveConfig, parseConfigFile, buildAdoUrl, clearConfigCache } from './config';
+import { getOutputChannel } from './runner';
 
 const SPEC_SELECTOR: vscode.DocumentSelector = [
   { language: 'feature' },
@@ -21,13 +22,18 @@ const SPEC_SELECTOR: vscode.DocumentSelector = [
   { pattern: '**/*.md' },
 ];
 
-export function activate(context: vscode.ExtensionContext): void {
+function logError(context: string, err: unknown): void {
+  const msg = err instanceof Error ? err.message : String(err);
+  getOutputChannel().appendLine(`[error] ${context}: ${msg}`);
+}
+
+export function activate(extensionContext: vscode.ExtensionContext): void {
   // ─── Providers ──────────────────────────────────────────────────────────────
 
   const codeLensProvider = new AdoSyncCodeLensProvider();
   const treeProvider = new AdoSyncTreeProvider();
 
-  context.subscriptions.push(
+  extensionContext.subscriptions.push(
     vscode.languages.registerCodeLensProvider(SPEC_SELECTOR, codeLensProvider),
     vscode.languages.registerHoverProvider(SPEC_SELECTOR, new AdoSyncHoverProvider()),
     vscode.window.registerTreeDataProvider('adoSyncTestCases', treeProvider),
@@ -39,7 +45,7 @@ export function activate(context: vscode.ExtensionContext): void {
   statusBarItem.command = 'ado-sync.status';
   statusBarItem.text = '$(beaker) ado-sync';
   statusBarItem.tooltip = 'Click to run ado-sync status';
-  context.subscriptions.push(statusBarItem);
+  extensionContext.subscriptions.push(statusBarItem);
 
   updateStatusBar(statusBarItem);
 
@@ -56,43 +62,43 @@ export function activate(context: vscode.ExtensionContext): void {
   configWatcher.onDidCreate(onConfigChange);
   configWatcher.onDidChange(onConfigChange);
   configWatcher.onDidDelete(onConfigChange);
-  context.subscriptions.push(configWatcher);
+  extensionContext.subscriptions.push(configWatcher);
 
   // ─── Commands ───────────────────────────────────────────────────────────────
 
-  context.subscriptions.push(
+  extensionContext.subscriptions.push(
     vscode.commands.registerCommand('ado-sync.push', () => {
       pushCommand(false).then(() => {
         treeProvider.refresh();
         codeLensProvider.refresh();
-      }).catch(() => { /* error shown inside pushCommand */ });
+      }).catch((err: unknown) => logError('push', err));
     }),
 
     vscode.commands.registerCommand('ado-sync.pushDryRun', () => {
-      pushCommand(true).catch(() => { /* error shown inside pushCommand */ });
+      pushCommand(true).catch((err: unknown) => logError('pushDryRun', err));
     }),
 
     vscode.commands.registerCommand('ado-sync.pull', () => {
       pullCommand(false).then(() => {
         treeProvider.refresh();
         codeLensProvider.refresh();
-      }).catch(() => { /* error shown inside pullCommand */ });
+      }).catch((err: unknown) => logError('pull', err));
     }),
 
     vscode.commands.registerCommand('ado-sync.pullDryRun', () => {
-      pullCommand(true).catch(() => { /* error shown inside pullCommand */ });
+      pullCommand(true).catch((err: unknown) => logError('pullDryRun', err));
     }),
 
     vscode.commands.registerCommand('ado-sync.status', () => {
-      statusCommand().catch(() => { /* error shown inside statusCommand */ });
+      statusCommand().catch((err: unknown) => logError('status', err));
     }),
 
     vscode.commands.registerCommand('ado-sync.validate', () => {
-      validateCommand().catch(() => { /* error shown inside validateCommand */ });
+      validateCommand().catch((err: unknown) => logError('validate', err));
     }),
 
     vscode.commands.registerCommand('ado-sync.generate', () => {
-      generateCommand().then(() => treeProvider.refresh()).catch(() => { /* error shown inside generateCommand */ });
+      generateCommand().then(() => treeProvider.refresh()).catch((err: unknown) => logError('generate', err));
     }),
 
     vscode.commands.registerCommand('ado-sync.refreshSidebar', () => {
@@ -100,23 +106,23 @@ export function activate(context: vscode.ExtensionContext): void {
     }),
 
     vscode.commands.registerCommand('ado-sync.publishResults', () => {
-      publishResultsCommand().catch(() => { /* error shown inside publishResultsCommand */ });
+      publishResultsCommand().catch((err: unknown) => logError('publishResults', err));
     }),
 
     vscode.commands.registerCommand('ado-sync.diff', () => {
-      diffCommand().catch(() => { /* error shown inside diffCommand */ });
+      diffCommand().catch((err: unknown) => logError('diff', err));
     }),
 
     vscode.commands.registerCommand('ado-sync.init', () => {
-      initCommand().catch(() => { /* error shown inside initCommand */ });
+      initCommand().catch((err: unknown) => logError('init', err));
     }),
 
     vscode.commands.registerCommand('ado-sync.storyContext', (storyId?: string) => {
-      storyContextCommand(storyId).catch(() => { /* error shown inside storyContextCommand */ });
+      storyContextCommand(storyId).catch((err: unknown) => logError('storyContext', err));
     }),
 
     vscode.commands.registerCommand('ado-sync.fetchTestCase', (tcId?: string) => {
-      fetchTestCaseCommand(tcId).catch(() => { /* error shown inside fetchTestCaseCommand */ });
+      fetchTestCaseCommand(tcId).catch((err: unknown) => logError('fetchTestCase', err));
     }),
 
     vscode.commands.registerCommand('ado-sync.openInAdo', (tcId: string) => {
@@ -135,14 +141,14 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // ─── Auto-status on save ─────────────────────────────────────────────────────
 
-  context.subscriptions.push(
+  extensionContext.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument((doc) => {
       const autoStatus = vscode.workspace.getConfiguration('ado-sync').get<boolean>('autoStatus', false);
       if (!autoStatus) return;
 
       const isSpec = doc.fileName.endsWith('.feature') || doc.fileName.endsWith('.md');
       if (isSpec) {
-        statusCommand().catch(() => { /* error shown inside statusCommand */ });
+        statusCommand().catch((err: unknown) => logError('autoStatus', err));
       }
     }),
 

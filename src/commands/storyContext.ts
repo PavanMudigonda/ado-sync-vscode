@@ -1,12 +1,10 @@
 import * as vscode from 'vscode';
 import { requireConfig, workspaceRoot } from '../config';
-import { runCli } from '../runner';
+import { runCliWithProgress } from '../runner';
 
 export async function storyContextCommand(storyId?: string): Promise<void> {
   const cfg = requireConfig();
   if (!cfg) return;
-
-  const root = workspaceRoot()!;
 
   if (!storyId) {
     const input = await vscode.window.showInputBox({
@@ -22,20 +20,13 @@ export async function storyContextCommand(storyId?: string): Promise<void> {
     if (!input) return;
     storyId = input.trim();
   }
-  const args = ['story-context', '--story-id', storyId, '--config', cfg.configPath];
 
-  await vscode.window.withProgress(
+  await runCliWithProgress(
+    ['story-context', '--story-id', storyId, '--config', cfg.configPath],
+    workspaceRoot()!,
     {
-      location: vscode.ProgressLocation.Notification,
       title: `ado-sync: Fetching story context for #${storyId}...`,
-      cancellable: true,
-    },
-    async (_, token) => {
-      const result = await runCli(args, root, undefined, token);
-      if (token.isCancellationRequested) return;
-      if (result.exitCode !== 0) {
-        vscode.window.showErrorMessage('ado-sync: Story context failed. See Output panel.');
-      }
+      errorMessage: 'ado-sync: Story context failed. See Output panel.',
     },
   );
 }

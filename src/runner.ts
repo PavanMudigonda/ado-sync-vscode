@@ -3,6 +3,10 @@ import * as cp from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
+const IS_WINDOWS = process.platform === 'win32';
+/** Kill the subprocess if it doesn't finish within this duration. */
+const SPAWN_TIMEOUT_MS = 120_000; // 2 minutes
+
 let outputChannel: vscode.OutputChannel | undefined;
 
 export function getOutputChannel(): vscode.OutputChannel {
@@ -33,15 +37,24 @@ export async function runCli(
   channel.appendLine(`\n$ ado-sync ${args.join(' ')}\n`);
 
   return new Promise((resolve) => {
-    // Try local node_modules/.bin first, fall back to global
-    const localBin = path.join(cwd, 'node_modules', '.bin', 'ado-sync');
-    const command = fs.existsSync(localBin) ? localBin : 'ado-sync';
+    // Try local node_modules/.bin first, fall back to global.
+    // On Windows npm CLI wrappers use a .cmd shim; use shell: false for security.
+    const localBinName = IS_WINDOWS ? 'ado-sync.cmd' : 'ado-sync';
+    const globalCmd = IS_WINDOWS ? 'ado-sync.cmd' : 'ado-sync';
+    const localBin = path.join(cwd, 'node_modules', '.bin', localBinName);
+    const command = fs.existsSync(localBin) ? localBin : globalCmd;
 
     const proc = cp.spawn(command, args, {
       cwd,
       env: { ...process.env, ...env },
-      shell: true, // works on all platforms, including nvm/fnm managed Node installs
+      shell: false,
     });
+
+    // Kill the process if it exceeds the timeout
+    const timeoutHandle = setTimeout(() => {
+      proc.kill();
+      channel.appendLine('\n[timeout: process killed after 120s]');
+    }, SPAWN_TIMEOUT_MS);
 
     // Wire up cancellation
     const cancelDisposable = token?.onCancellationRequested(() => {
@@ -65,6 +78,7 @@ export async function runCli(
     });
 
     proc.on('close', (code) => {
+      clearTimeout(timeoutHandle);
       cancelDisposable?.dispose();
       const exitCode = code ?? 1;
       channel.appendLine(`\n[exit ${exitCode}]`);
@@ -72,10 +86,48 @@ export async function runCli(
     });
 
     proc.on('error', (err) => {
+      clearTimeout(timeoutHandle);
       cancelDisposable?.dispose();
       const msg = `Failed to start ado-sync: ${err.message}\nMake sure ado-sync is installed: npm install -g ado-sync`;
       channel.appendLine(msg);
       resolve({ stdout: '', stderr: msg, exitCode: 1 });
     });
   });
+}
+
+/**
+ * Run a CLI command wrapped in a VS Code progress notification.
+ * Shows a success or error message based on the exit code.
+ * Returns undefined if the operation was cancelled.
+ */
+export async function runCliWithProgress(
+  args: string[],
+  cwd: string,
+  options: {
+    title: string;
+    successMessage?: string;
+    errorMessage: string;
+    cancellable?: boolean;
+  },
+  env?: Record<string, string>,
+): Promise<RunResult | undefined> {
+  return vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: options.title,
+      cancellable: options.cancellable ?? true,
+    },
+    async (_, token) => {
+      const result = await runCli(args, cwd, env, token);
+      if (token.isCancellationRequested) return undefined;
+      if (result.exitCode === 0) {
+        if (options.successMessage) {
+          vscode.window.showInformationMessage(options.successMessage);
+        }
+      } else {
+        vscode.window.showErrorMessage(options.errorMessage);
+      }
+      return result;
+    },
+  );
 }

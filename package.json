@@ -170,16 +170,6 @@
           "type": "boolean",
           "default": false,
           "description": "Automatically run status check when a spec file is saved"
-        },
-        "ado-sync.outputLevel": {
-          "type": "string",
-          "enum": [
-            "normal",
-            "verbose",
-            "quiet"
-          ],
-          "default": "normal",
-          "description": "Output verbosity level"
         }
       }
     }

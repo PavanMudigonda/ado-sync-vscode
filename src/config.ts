@@ -21,7 +21,8 @@ export function parseConfigFile(configPath: string): AdoProjectConfig | undefine
       orgUrl: (config.orgUrl ?? '').replace(/\/$/, ''),
       project: config.project ?? '',
     };
-  } catch {
+  } catch (err) {
+    console.error(`[ado-sync] Failed to parse config file ${configPath}: ${err instanceof Error ? err.message : String(err)}`);
     return undefined;
   }
 }
@@ -49,7 +50,11 @@ export function clearConfigCache(): void {
  * Skips node_modules, .git, dist, and hidden folders.
  */
 const MAX_SCAN_DEPTH = 6;
-export const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build', 'out', '.next', '.nuxt', 'coverage']);
+export const SKIP_DIRS = new Set([
+  'node_modules', '.git', 'dist', 'build', 'out',
+  '.next', '.nuxt', '.turbo', '.parcel-cache',
+  'coverage', 'vendor', '.yarn', '.pnp',
+]);
 
 function findConfigInWorkspace(root: string): string | undefined {
   // BFS queue: [dirPath, depth]
@@ -150,7 +155,8 @@ export function readTagSettings(): TagSettings {
     const linkMatches = raw.matchAll(/^\s*-?\s*prefix\s*:\s*['"]?([A-Za-z0-9_-]+)['"]?/gm);
     const linkPrefixes = Array.from(linkMatches, (m) => m[1]);
     return { tagPrefix, linkPrefixes };
-  } catch {
+  } catch (err) {
+    console.error(`[ado-sync] Failed to read tag settings from ${cfg.configPath}: ${err instanceof Error ? err.message : String(err)}`);
     return { tagPrefix: 'tc', linkPrefixes: [] };
   }
 }

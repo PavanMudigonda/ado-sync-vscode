@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { workspaceRoot } from '../config';
-import { runCli } from '../runner';
+import { runCliWithProgress } from '../runner';
 
 export async function initCommand(): Promise<void> {
   const root = workspaceRoot();
@@ -18,23 +18,10 @@ export async function initCommand(): Promise<void> {
   );
   if (!format) return;
 
-  const args = ['init', format.label, '--no-interactive'];
-
-  await vscode.window.withProgress(
-    {
-      location: vscode.ProgressLocation.Notification,
-      title: `ado-sync: Creating ${format.label}...`,
-      cancellable: false,
-    },
-    async () => {
-      const result = await runCli(args, root);
-      if (result.exitCode === 0) {
-        vscode.window.showInformationMessage(
-          `ado-sync: ${format.label} created. Edit it to add your ADO credentials, then run Validate Config.`,
-        );
-      } else {
-        vscode.window.showErrorMessage('ado-sync: Init failed. See Output panel for details.');
-      }
-    },
-  );
+  await runCliWithProgress(['init', format.label, '--no-interactive'], root, {
+    title: `ado-sync: Creating ${format.label}...`,
+    successMessage: `ado-sync: ${format.label} created. Edit it to add your ADO credentials, then run Validate Config.`,
+    errorMessage: 'ado-sync: Init failed. See Output panel for details.',
+    cancellable: false,
+  });
 }
