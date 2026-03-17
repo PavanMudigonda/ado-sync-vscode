@@ -31,6 +31,10 @@ Bidirectional sync between local test specs (`.feature`, `.md`) and Azure DevOps
 | `ado-sync: Generate Spec from Story` | Generate `.feature` or `.md` from an ADO User Story ID |
 | `ado-sync: Fetch Test Case` | Fetch a specific ADO Test Case by ID and display its details |
 | `ado-sync: Publish Test Results` | Upload local test result files (Playwright, Cucumber, JUnit, TRX, NUnit, CTRF) to an ADO Test Run |
+| `ado-sync: Detect Stale Test Cases` | List ADO Test Cases that have no corresponding local spec |
+| `ado-sync: Show Coverage Report` | Show spec link rate and story coverage % |
+| `ado-sync: Start Watch` | Auto-push local spec changes to ADO on file save |
+| `ado-sync: Stop Watch` | Stop the running watch process |
 
 ### CodeLens
 

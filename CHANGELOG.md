@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.5
+
+- **New command:** `ado-sync: Detect Stale Test Cases` — lists ADO TCs with no local spec counterpart
+- **New command:** `ado-sync: Show Coverage Report` — reports spec link rate and story coverage %
+- **New command:** `ado-sync: Start Watch` / `Stop Watch` — daemon mode that auto-pushes on file save; status bar reflects active watch state
+
 ## 0.2.4
 
 - Patch release: packaging and versioning bump; no functional changes beyond 0.2.3

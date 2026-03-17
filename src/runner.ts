@@ -109,6 +109,58 @@ export async function runCli(
   });
 }
 
+export interface BackgroundProcess {
+  kill(): void;
+}
+
+/**
+ * Spawn a long-running CLI process (e.g. `watch`) that streams output to the
+ * Output Channel without waiting for it to exit. Returns a handle to kill it.
+ */
+export function spawnCliBackground(
+  args: string[],
+  cwd: string,
+  onExit?: (code: number) => void,
+): BackgroundProcess {
+  const channel = getOutputChannel();
+  channel.show(true);
+  channel.appendLine(`\n$ ado-sync ${args.join(' ')}\n`);
+
+  const localBinName = IS_WINDOWS ? 'ado-sync.cmd' : 'ado-sync';
+  const localBin = path.join(cwd, 'node_modules', '.bin', localBinName);
+  const command = fs.existsSync(localBin) ? localBin : (IS_WINDOWS ? 'ado-sync.cmd' : 'ado-sync');
+
+  const proc = cp.spawn(command, args, { cwd, env: { ...process.env }, shell: false });
+
+  proc.stdout.on('data', (chunk: Buffer) => channel.append(chunk.toString()));
+  proc.stderr.on('data', (chunk: Buffer) => channel.append(chunk.toString()));
+
+  proc.on('close', (code) => {
+    const exitCode = code ?? 1;
+    channel.appendLine(`\n[exit ${exitCode}]`);
+    onExit?.(exitCode);
+  });
+
+  proc.on('error', (err) => {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+      channel.appendLine('ado-sync CLI not found.');
+      vscode.window.showWarningMessage(
+        'ado-sync: CLI not found. Install it to use this extension.',
+        'Install',
+      ).then((action) => {
+        if (action === 'Install') {
+          vscode.env.openExternal(vscode.Uri.parse('https://www.npmjs.com/package/ado-sync'));
+        }
+      });
+    } else {
+      channel.appendLine(`Failed to start ado-sync: ${err.message}`);
+    }
+    onExit?.(1);
+  });
+
+  return { kill: () => { proc.kill(); } };
+}
+
 /**
  * Run a CLI command wrapped in a VS Code progress notification.
  * Shows a success or error message based on the exit code.

@@ -13,6 +13,9 @@ import { diffCommand } from './commands/diff';
 import { initCommand } from './commands/init';
 import { storyContextCommand } from './commands/storyContext';
 import { fetchTestCaseCommand } from './commands/fetchTestCase';
+import { staleCommand } from './commands/stale';
+import { coverageCommand } from './commands/coverage';
+import { startWatchCommand, stopWatchCommand, setWatchStatusBar, disposeWatch } from './commands/watch';
 import { AdoSyncCodeLensProvider } from './providers/codelens';
 import { AdoSyncHoverProvider } from './providers/hover';
 import { AdoSyncTreeProvider } from './sidebar/tree';
@@ -77,6 +80,7 @@ export function activate(extensionContext: vscode.ExtensionContext): void {
   statusBarItem.tooltip = 'Click to run ado-sync status';
   extensionContext.subscriptions.push(statusBarItem);
 
+  setWatchStatusBar(statusBarItem);
   updateStatusBar(statusBarItem);
 
   // Refresh status bar and clear config cache when a config file is created, changed, or deleted
@@ -159,6 +163,22 @@ export function activate(extensionContext: vscode.ExtensionContext): void {
       fetchTestCaseCommand(tcId).catch((err: unknown) => logError('fetchTestCase', err));
     }),
 
+    vscode.commands.registerCommand('ado-sync.stale', () => {
+      staleCommand().catch((err: unknown) => logError('stale', err));
+    }),
+
+    vscode.commands.registerCommand('ado-sync.coverage', () => {
+      coverageCommand().catch((err: unknown) => logError('coverage', err));
+    }),
+
+    vscode.commands.registerCommand('ado-sync.startWatch', () => {
+      startWatchCommand().catch((err: unknown) => logError('startWatch', err));
+    }),
+
+    vscode.commands.registerCommand('ado-sync.stopWatch', () => {
+      stopWatchCommand();
+    }),
+
     vscode.commands.registerCommand('ado-sync.openInAdo', (tcId: string) => {
       const cfg = resolveConfig();
       if (!cfg.exists) return;
@@ -193,6 +213,7 @@ export function activate(extensionContext: vscode.ExtensionContext): void {
 }
 
 export function deactivate(): void {
+  disposeWatch();
   getOutputChannel().dispose();
 }
 

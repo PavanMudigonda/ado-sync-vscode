@@ -2,7 +2,7 @@
   "name": "ado-sync-vscode",
   "displayName": "ado-sync",
   "description": "Bidirectional sync between local test specs and Azure DevOps Test Cases",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "publisher": "PavanMudigonda",
   "license": "MIT",
   "repository": {
@@ -105,6 +105,26 @@
         "command": "ado-sync.fetchTestCase",
         "title": "ado-sync: Fetch Test Case",
         "icon": "$(cloud-download)"
+      },
+      {
+        "command": "ado-sync.stale",
+        "title": "ado-sync: Detect Stale Test Cases",
+        "icon": "$(warning)"
+      },
+      {
+        "command": "ado-sync.coverage",
+        "title": "ado-sync: Show Coverage Report",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "ado-sync.startWatch",
+        "title": "ado-sync: Start Watch",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "ado-sync.stopWatch",
+        "title": "ado-sync: Stop Watch",
+        "icon": "$(eye-closed)"
       }
     ],
     "menus": {
