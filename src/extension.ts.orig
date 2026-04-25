@@ -15,9 +15,6 @@ import { storyContextCommand } from './commands/storyContext';
 import { fetchTestCaseCommand } from './commands/fetchTestCase';
 import { staleCommand } from './commands/stale';
 import { coverageCommand } from './commands/coverage';
-import { acGateCommand } from './commands/acGate';
-import { trendCommand } from './commands/trend';
-import { findTaggedCommand } from './commands/findTagged';
 import { startWatchCommand, stopWatchCommand, setWatchStatusBar, disposeWatch } from './commands/watch';
 import { AdoSyncCodeLensProvider } from './providers/codelens';
 import { AdoSyncHoverProvider } from './providers/hover';
@@ -172,18 +169,6 @@ export function activate(extensionContext: vscode.ExtensionContext): void {
 
     vscode.commands.registerCommand('ado-sync.coverage', () => {
       coverageCommand().catch((err: unknown) => logError('coverage', err));
-    }),
-
-    vscode.commands.registerCommand('ado-sync.acGate', () => {
-      acGateCommand().catch((err: unknown) => logError('acGate', err));
-    }),
-
-    vscode.commands.registerCommand('ado-sync.trend', () => {
-      trendCommand().catch((err: unknown) => logError('trend', err));
-    }),
-
-    vscode.commands.registerCommand('ado-sync.findTagged', () => {
-      findTaggedCommand().catch((err: unknown) => logError('findTagged', err));
     }),
 
     vscode.commands.registerCommand('ado-sync.startWatch', () => {

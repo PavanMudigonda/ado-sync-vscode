@@ -125,21 +125,6 @@
         "command": "ado-sync.stopWatch",
         "title": "ado-sync: Stop Watch",
         "icon": "$(eye-closed)"
-      },
-      {
-        "command": "ado-sync.acGate",
-        "title": "ado-sync: Run AC Gate",
-        "icon": "$(shield)"
-      },
-      {
-        "command": "ado-sync.trend",
-        "title": "ado-sync: Analyze Test Trends",
-        "icon": "$(graph-line)"
-      },
-      {
-        "command": "ado-sync.findTagged",
-        "title": "ado-sync: Find Tagged Work Items",
-        "icon": "$(tag)"
       }
     ],
     "menus": {

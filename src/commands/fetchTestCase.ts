@@ -22,12 +22,12 @@ export async function fetchTestCaseCommand(tcId?: string): Promise<void> {
   }
 
   await runCliWithProgress(
-    ['fetch-tc', '--id', tcId, '--config', cfg.configPath],
+    ['pull', '--tags', `@tc:${tcId}`, '--config', cfg.configPath],
     workspaceRoot()!,
     {
-      title: `ado-sync: Fetching test case #${tcId}...`,
-      successMessage: `ado-sync: TC #${tcId} fetched. See Output panel.`,
-      errorMessage: `ado-sync: Failed to fetch TC #${tcId}. See Output panel.`,
+      title: `ado-sync: Pulling test case #${tcId}...`,
+      successMessage: `ado-sync: TC #${tcId} pulled to local spec.`,
+      errorMessage: `ado-sync: Failed to pull TC #${tcId}. See Output panel.`,
     },
   );
 }
