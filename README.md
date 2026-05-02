@@ -38,6 +38,19 @@ The repository includes an **ADO Sync** custom agent and three plugin skills:
 2. Install from `PavanMudigonda/ado-sync-vscode` or a local clone of this repository
 3. Open Chat and select the **ADO Sync** agent or invoke one of the `/ado-sync:*` skills
 
+### Install from a plugin marketplace
+
+This repository now also publishes a marketplace manifest at `.github/plugin/marketplace.json`.
+
+For Copilot CLI, add the marketplace and install the plugin with:
+
+```bash
+copilot plugin marketplace add PavanMudigonda/ado-sync-vscode
+copilot plugin install ado-sync@pavanmudigonda-plugins
+```
+
+For VS Code's **Agent Plugins** view, the plugin appears after this marketplace is configured for your environment. Once available, search for `ado-sync` in the **@agentPlugins** view and install it from there.
+
 You can also install the same plugin in Copilot CLI:
 
 ```bash

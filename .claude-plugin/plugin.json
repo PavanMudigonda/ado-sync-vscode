@@ -1,7 +1,7 @@
 {
   "name": "ado-sync",
   "description": "Copilot agent plugin for syncing local specs with Azure DevOps Test Cases through the ado-sync CLI.",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "author": {
     "name": "Pavan Mudigonda",
     "url": "https://github.com/PavanMudigonda"
