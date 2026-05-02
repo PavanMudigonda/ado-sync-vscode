@@ -1,0 +1,33 @@
+{
+  "name": "pavanmudigonda-plugins",
+  "owner": {
+    "name": "Pavan Mudigonda"
+  },
+  "metadata": {
+    "description": "Agent plugins published from the ado-sync-vscode repository.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "ado-sync",
+      "source": ".claude-plugin",
+      "description": "Copilot agent plugin for syncing local specs with Azure DevOps Test Cases through the ado-sync CLI.",
+      "version": "0.3.2",
+      "author": {
+        "name": "Pavan Mudigonda",
+        "url": "https://github.com/PavanMudigonda"
+      },
+      "homepage": "https://github.com/PavanMudigonda/ado-sync-vscode",
+      "repository": "https://github.com/PavanMudigonda/ado-sync-vscode",
+      "license": "MIT",
+      "keywords": [
+        "azure-devops",
+        "test-cases",
+        "gherkin",
+        "playwright",
+        "spec-sync"
+      ],
+      "category": "testing"
+    }
+  ]
+}
