@@ -7,27 +7,49 @@ export async function findTaggedCommand(): Promise<void> {
   if (!cfg) return;
 
   const tag = await vscode.window.showInputBox({
-    title: 'ado-sync: Find Tagged',
-    prompt: 'Enter the tag to search for (e.g. regression)',
-    validateInput: (v) => (!v.trim() ? 'Tag is required' : undefined),
+    title: 'ado-sync: Find Tagged — tag name',
+    prompt: 'The tag to search for (e.g. "regression")',
+    placeHolder: 'regression',
+    validateInput: (v) => (v.trim() ? undefined : 'Tag is required'),
   });
   if (!tag) return;
 
-  const days = await vscode.window.showInputBox({
-    title: 'ado-sync: Find Tagged',
-    prompt: 'Enter the number of days to search back (e.g. 7)',
-    value: '7',
-    validateInput: (v) => (!/^\d+$/.test(v.trim()) ? 'Must be a number' : undefined),
-  });
-  if (!days) return;
-
-  await runCliWithProgress(
-    ['find-tagged', '--tag', tag.trim(), '--days', days.trim(), '--config', cfg.configPath],
-    workspaceRoot()!,
-    {
-      title: `ado-sync: Finding items tagged '${tag}' in the last ${days} days...`,
-      successMessage: 'ado-sync: Search complete. See Output panel.',
-      errorMessage: 'ado-sync: Search failed. See Output panel.',
-    },
+  const windowChoice = await vscode.window.showQuickPick(
+    [
+      { label: 'Hours', description: 'Find items where the tag was added in the last N hours' },
+      { label: 'Days',  description: 'Find items where the tag was added in the last N days' },
+    ],
+    { title: 'ado-sync: Find Tagged — time window' },
   );
+  if (!windowChoice) return;
+
+  const valueLabel = windowChoice.label.toLowerCase();
+  const value = await vscode.window.showInputBox({
+    title: `ado-sync: Find Tagged — last N ${valueLabel}`,
+    prompt: `How many ${valueLabel} back to search`,
+    value: valueLabel === 'hours' ? '24' : '7',
+    validateInput: (v) => (/^\d+(\.\d+)?$/.test(v.trim()) ? undefined : 'Must be a positive number'),
+  });
+  if (!value) return;
+
+  const workItemType = await vscode.window.showInputBox({
+    title: 'ado-sync: Find Tagged — work item type',
+    prompt: 'Work item type to search',
+    value: 'User Story',
+  });
+  if (workItemType === undefined) return;
+
+  const args = [
+    'find-tagged',
+    '--config', cfg.configPath,
+    '--tag', tag.trim(),
+    `--${valueLabel}`, value.trim(),
+  ];
+  if (workItemType.trim()) args.push('--work-item-type', workItemType.trim());
+
+  await runCliWithProgress(args, workspaceRoot()!, {
+    title: `ado-sync: Searching for "${tag}" tag...`,
+    successMessage: 'ado-sync: Find tagged complete. See Output panel.',
+    errorMessage: 'ado-sync: Find tagged failed. See Output panel.',
+  });
 }

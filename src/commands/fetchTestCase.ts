@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { requireConfig, workspaceRoot } from '../config';
+import { requireConfig, readTagPrefix, workspaceRoot } from '../config';
 import { runCliWithProgress } from '../runner';
 
 export async function fetchTestCaseCommand(tcId?: string): Promise<void> {
@@ -9,7 +9,7 @@ export async function fetchTestCaseCommand(tcId?: string): Promise<void> {
   if (!tcId) {
     const input = await vscode.window.showInputBox({
       title: 'ado-sync: Fetch Test Case',
-      prompt: 'Enter an ADO Test Case ID to fetch its details',
+      prompt: 'Enter an ADO Test Case ID to pull its latest content into the matching local spec',
       placeHolder: '1234',
       validateInput: (v) => {
         if (!v.trim()) return 'Test Case ID is required';
@@ -21,8 +21,13 @@ export async function fetchTestCaseCommand(tcId?: string): Promise<void> {
     tcId = input.trim();
   }
 
+  // Use a scoped pull to refresh the local spec for just this TC.
+  // The tag expression matches the @<tagPrefix>:<id> marker on the scenario.
+  const tagPrefix = readTagPrefix();
+  const tagExpr = `@${tagPrefix}:${tcId}`;
+
   await runCliWithProgress(
-    ['pull', '--tags', `@tc:${tcId}`, '--config', cfg.configPath],
+    ['pull', '--tags', tagExpr, '--config', cfg.configPath],
     workspaceRoot()!,
     {
       title: `ado-sync: Pulling test case #${tcId}...`,

@@ -35,6 +35,10 @@ Bidirectional sync between local test specs (`.feature`, `.md`) and Azure DevOps
 | `ado-sync: Show Coverage Report` | Show spec link rate and story coverage % |
 | `ado-sync: Start Watch` | Auto-push local spec changes to ADO on file save |
 | `ado-sync: Stop Watch` | Stop the running watch process |
+| `ado-sync: AC Gate (validate stories)` | Validate that User Stories have AC and linked test cases (CI gate) |
+| `ado-sync: Test Run Trend Report` | Detect flaky tests and failure patterns over the last N days |
+| `ado-sync: Find Recently Tagged Work Items` | List work items where a tag was added in the last N hours/days |
+| `ado-sync: Show Resolved Config` | Dump the resolved config to the Output panel (token redacted) |
 
 ### CodeLens
 

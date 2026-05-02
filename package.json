@@ -2,7 +2,7 @@
   "name": "ado-sync-vscode",
   "displayName": "ado-sync",
   "description": "Bidirectional sync between local test specs and Azure DevOps Test Cases",
-  "version": "0.2.6",
+  "version": "0.3.0",
   "publisher": "PavanMudigonda",
   "license": "MIT",
   "repository": {
@@ -128,18 +128,23 @@
       },
       {
         "command": "ado-sync.acGate",
-        "title": "ado-sync: Run AC Gate",
+        "title": "ado-sync: AC Gate (validate stories)",
         "icon": "$(shield)"
       },
       {
         "command": "ado-sync.trend",
-        "title": "ado-sync: Analyze Test Trends",
+        "title": "ado-sync: Test Run Trend Report",
         "icon": "$(graph-line)"
       },
       {
         "command": "ado-sync.findTagged",
-        "title": "ado-sync: Find Tagged Work Items",
+        "title": "ado-sync: Find Recently Tagged Work Items",
         "icon": "$(tag)"
+      },
+      {
+        "command": "ado-sync.configShow",
+        "title": "ado-sync: Show Resolved Config",
+        "icon": "$(json)"
       }
     ],
     "menus": {
@@ -234,7 +239,7 @@
     "vitest": "^4.1.0"
   },
   "peerDependencies": {
-    "ado-sync": ">=0.1.61"
+    "ado-sync": ">=0.1.65"
   },
   "peerDependenciesMeta": {
     "ado-sync": {

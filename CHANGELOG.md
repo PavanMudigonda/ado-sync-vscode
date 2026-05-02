@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0
+
+- **New command:** `ado-sync: AC Gate` — validate that ADO User Stories have acceptance criteria and linked test cases (CI quality gate)
+- **New command:** `ado-sync: Test Run Trend Report` — analyse historical test run results to detect flaky tests and failure patterns
+- **New command:** `ado-sync: Find Recently Tagged Work Items` — surface User Stories where a tag was added in the last N hours/days
+- **New command:** `ado-sync: Show Resolved Config` — dump the fully resolved configuration (token redacted) to the Output panel
+- **Fix:** `Fetch Test Case` no longer calls a non-existent `fetch-tc` subcommand; now performs a tag-scoped pull (`pull --tags @tc:<id>`) which actually refreshes the matching local spec
+- Bumped `ado-sync` peer dependency floor to `>=0.1.65` to cover commands added in CLI 0.1.46–0.1.65 (`ac-gate`, `trend`, `find-tagged`, `config show`, `extensions`)
+
 ## 0.2.5
 
 - **New command:** `ado-sync: Detect Stale Test Cases` — lists ADO TCs with no local spec counterpart

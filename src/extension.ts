@@ -15,10 +15,11 @@ import { storyContextCommand } from './commands/storyContext';
 import { fetchTestCaseCommand } from './commands/fetchTestCase';
 import { staleCommand } from './commands/stale';
 import { coverageCommand } from './commands/coverage';
+import { startWatchCommand, stopWatchCommand, setWatchStatusBar, disposeWatch } from './commands/watch';
 import { acGateCommand } from './commands/acGate';
 import { trendCommand } from './commands/trend';
 import { findTaggedCommand } from './commands/findTagged';
-import { startWatchCommand, stopWatchCommand, setWatchStatusBar, disposeWatch } from './commands/watch';
+import { configShowCommand } from './commands/configShow';
 import { AdoSyncCodeLensProvider } from './providers/codelens';
 import { AdoSyncHoverProvider } from './providers/hover';
 import { AdoSyncTreeProvider } from './sidebar/tree';
@@ -192,6 +193,10 @@ export function activate(extensionContext: vscode.ExtensionContext): void {
 
     vscode.commands.registerCommand('ado-sync.stopWatch', () => {
       stopWatchCommand();
+    }),
+
+    vscode.commands.registerCommand('ado-sync.configShow', () => {
+      configShowCommand().catch((err: unknown) => logError('configShow', err));
     }),
 
     vscode.commands.registerCommand('ado-sync.openInAdo', (tcId: string) => {
