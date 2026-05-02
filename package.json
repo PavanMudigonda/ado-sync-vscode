@@ -2,7 +2,7 @@
   "name": "ado-sync-vscode",
   "displayName": "ado-sync",
   "description": "Bidirectional sync between local test specs and Azure DevOps Test Cases",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "publisher": "PavanMudigonda",
   "license": "MIT",
   "repository": {

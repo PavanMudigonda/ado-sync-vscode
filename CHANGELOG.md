@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+- Patch release: re-publish of 0.3.0 with refreshed `package-lock.json` synced to the bumped `ado-sync` peer dependency floor (`>=0.1.65`); no functional changes
+
 ## 0.3.0
 
 - **New command:** `ado-sync: AC Gate` — validate that ADO User Stories have acceptance criteria and linked test cases (CI quality gate)
