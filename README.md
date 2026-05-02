@@ -1,6 +1,11 @@
-# ado-sync — VS Code Extension
+# ado-sync — VS Code Extension + Copilot Agent Plugin
 
 Bidirectional sync between local test specs (`.feature`, `.md`) and Azure DevOps Test Cases, right from VS Code.
+
+This repository now ships two integration surfaces that reuse the same `ado-sync` CLI:
+
+- the traditional VS Code extension in this package
+- a Copilot agent plugin under `.claude-plugin/` that can be installed from the repository source
 
 ---
 
@@ -16,7 +21,48 @@ Bidirectional sync between local test specs (`.feature`, `.md`) and Azure DevOps
 
 ---
 
+## Copilot agent plugin
+
+The repository includes an **ADO Sync** custom agent and three plugin skills:
+
+| Plugin customization | Purpose |
+|---------|-------------|
+| `ADO Sync` agent | Orchestrates ado-sync workflows from chat |
+| `/ado-sync:sync` | Init, validate, status, diff, push, pull, and `config show` |
+| `/ado-sync:specs` | Generate specs, show story context, and refresh one test case |
+| `/ado-sync:reporting` | Coverage, stale checks, AC gate, trends, tag audits, and result publishing |
+
+### Install from source
+
+1. In VS Code, run **Chat: Install Plugin From Source**
+2. Install from `PavanMudigonda/ado-sync-vscode` or a local clone of this repository
+3. Open Chat and select the **ADO Sync** agent or invoke one of the `/ado-sync:*` skills
+
+You can also install the same plugin in Copilot CLI:
+
+```bash
+copilot plugin install PavanMudigonda/ado-sync-vscode
+```
+
+The plugin uses the bundled runner in `.claude-plugin/scripts/run-ado-sync.mjs`, which auto-detects the workspace config file and prefers a workspace-local `ado-sync` binary when available.
+
+---
+
 ## Features
+
+### Copilot chat workflows
+
+From chat, the plugin can drive these ado-sync flows:
+
+- setup and config validation
+- status, diff, push, and pull
+- story-to-spec generation and story context lookup
+- targeted single-test-case refresh
+- stale-link and coverage reporting
+- AC gate, trend analysis, and recent tag audits
+- test result publishing to Azure DevOps
+
+### VS Code extension commands
 
 ### Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 
@@ -77,9 +123,9 @@ A status bar item shows the current sync state. Click it to run `ado-sync status
 
 1. Install `ado-sync` globally: `npm install -g ado-sync`
 2. In your project root, run: `ado-sync init` — creates `ado-sync.json`
-3. Install this extension
-4. Open a `.feature` or `.md` spec file — `@tc:` CodeLens links appear immediately
-5. Open Command Palette → `ado-sync: Validate Config` to confirm connectivity
+3. Install this extension, the Copilot agent plugin, or both
+4. Open a `.feature` or `.md` spec file — `@tc:` CodeLens links appear immediately in the extension
+5. Open Command Palette → `ado-sync: Validate Config` or run `/ado-sync:sync validate` in chat to confirm connectivity
 
 ---
 
